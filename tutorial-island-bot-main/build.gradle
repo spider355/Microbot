@@ -1,0 +1,80 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'net.runelite.client.plugins.microbot'
+version = '1.0.0'
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'https://repo.runelite.net'
+    }
+    maven {
+        url = 'https://jitpack.io'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    // Use Microbot's fork which has all the util classes
+    compileOnly 'com.github.chsami:microbot:master-SNAPSHOT'
+    
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.slf4j:slf4j-api:1.7.36'
+}
+
+shadowJar {
+    archiveBaseName = 'tutorial-island-bot'
+    archiveVersion = project.version
+    archiveClassifier = ''
+    
+    manifest {
+        attributes(
+            'Plugin-Version': project.version,
+            'Plugin-Id': 'tutorialislandbot',
+            'Plugin-Provider': 'Microbot',
+            'Plugin-Dependencies': '',
+            'Plugin-Description': 'Completes Tutorial Island automatically',
+            'Plugin-License': 'BSD-2-Clause'
+        )
+    }
+    
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    mergeServiceFiles()
+}
+
+jar {
+    enabled = false
+}
+
+build.dependsOn shadowJar
+
+task copyToPlugins(type: Copy, dependsOn: shadowJar) {
+    from shadowJar.archiveFile
+    into "${System.getProperty('user.home')}/.runelite/plugins"
+    
+    doLast {
+        println "✅ Copied to: ${System.getProperty('user.home')}/.runelite/plugins/${shadowJar.archiveFileName.get()}"
+        println "🔄 Please restart RuneLite to load the plugin"
+    }
+}
+
+task install(dependsOn: copyToPlugins) {
+    doLast {
+        println "✅ Installation complete!"
+        println "📋 Next steps:"
+        println "   1. Restart RuneLite"
+        println "   2. Enable 'Tutorial Island Bot' in the plugin panel"
+        println "   3. Configure settings if needed"
+    }
+}
+
+clean {
+    delete "${System.getProperty('user.home')}/.runelite/plugins/tutorial-island-bot-*.jar"
+}

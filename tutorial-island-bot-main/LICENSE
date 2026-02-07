@@ -1,0 +1,20 @@
+
+## File 5: `CHANGELOG.md`
+
+```markdown
+# Changelog
+
+## [1.0.0] - 2024
+
+### Added
+- Initial release
+- Full Tutorial Island automation
+- Character creation (female only)
+- Random name generation
+- All 12 tutorial stages
+- Ironman mode support
+- Post-tutorial navigation to Falador
+- Error recovery system
+- Stuck detection
+- Progress overlay
+- Resume capability
