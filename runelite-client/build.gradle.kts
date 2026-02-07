@@ -238,15 +238,25 @@ tasks.processResources {
     inputs.property("projectVersion", project.version)
 
     val commit = ByteArrayOutputStream()
-    exec {
-        commandLine("git", "rev-parse", "--short=7", "HEAD")
-        standardOutput = commit
+    try {
+        exec {
+            commandLine("git", "rev-parse", "--short=7", "HEAD")
+            standardOutput = commit
+            isIgnoreExitValue = true
+        }
+    } catch (e: Exception) {
+        commit.write("unknown".toByteArray())
     }
 
     val dirty = ByteArrayOutputStream()
-    exec {
-        commandLine("git", "status", "--short")
-        standardOutput = dirty
+    try {
+        exec {
+            commandLine("git", "status", "--short")
+            standardOutput = dirty
+            isIgnoreExitValue = true
+        }
+    } catch (e: Exception) {
+        dirty.write("".toByteArray())
     }
 
     val microbotVersion = microbotVersionProvider.get()

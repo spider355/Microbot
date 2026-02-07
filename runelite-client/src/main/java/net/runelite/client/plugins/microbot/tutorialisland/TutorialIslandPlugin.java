@@ -1,124 +1,60 @@
 package net.runelite.client.plugins.microbot.tutorialisland;
 
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.ConfigSection;
+import com.google.inject.Provides;
+import javax.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.events.GameLoop;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.overlay.OverlayManager;
 
-@ConfigGroup("tutorialisland")
-public interface TutorialIslandConfig extends Config {
+@PluginDescriptor(
+        name = "Tutorial Island Bot",
+        description = "Automatically completes Tutorial Island with character creation",
+        tags = {"tutorial", "island", "automation", "microbot", "ironman"}
+)
+@Slf4j
+public class TutorialIslandPlugin extends Plugin {
 
-    @ConfigSection(
-            name = "General Settings",
-            description = "General bot settings",
-            position = 0
-    )
-    String generalSection = "general";
+    @Inject
+    private Client client;
 
-    @ConfigSection(
-            name = "Account Settings",
-            description = "Account configuration options",
-            position = 1
-    )
-    String accountSection = "account";
+    @Inject
+    private TutorialIslandConfig config;
 
-    @ConfigSection(
-            name = "Advanced Settings",
-            description = "Advanced configuration options",
-            position = 2
-    )
-    String advancedSection = "advanced";
+    @Inject
+    private TutorialIslandScript script;
 
-    @ConfigItem(
-            keyName = "walkToFalador",
-            name = "Walk to Falador Bank",
-            description = "After completing Tutorial Island, walk to Falador bank",
-            position = 1,
-            section = generalSection
-    )
-    default boolean walkToFalador() {
-        return true;
+    @Inject
+    private TutorialIslandOverlay overlay;
+
+    @Inject
+    private OverlayManager overlayManager;
+
+    @Override
+    protected void startUp() throws Exception {
+        overlayManager.add(overlay);
+        script.run(config);
+        log.info("Tutorial Island Bot started");
     }
 
-    @ConfigItem(
-            keyName = "actionDelay",
-            name = "Action Delay (ms)",
-            description = "Delay between actions in milliseconds (100-2000)",
-            position = 2,
-            section = generalSection
-    )
-    default int actionDelay() {
-        return 600;
+    @Override
+    protected void shutDown() throws Exception {
+        overlayManager.remove(overlay);
+        script.stop();
+        log.info("Tutorial Island Bot stopped");
     }
 
-    @ConfigItem(
-            keyName = "randomizeDelay",
-            name = "Randomize Delay",
-            description = "Add random variance to action delays for more human-like behavior",
-            position = 3,
-            section = generalSection
-    )
-    default boolean randomizeDelay() {
-        return true;
+    @Subscribe
+    public void onGameLoop(GameLoop event) {
+        // Game loop handling if needed
     }
 
-    @ConfigItem(
-            keyName = "enableIronmanMode",
-            name = "Enable Ironman Mode",
-            description = "Select Ironman mode at the end of Tutorial Island",
-            position = 1,
-            section = accountSection
-    )
-    default boolean enableIronmanMode() {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "ironmanType",
-            name = "Ironman Type",
-            description = "Type of Ironman account to create (only if Ironman Mode enabled)",
-            position = 2,
-            section = accountSection
-    )
-    default IronmanType ironmanType() {
-        return IronmanType.REGULAR_IRONMAN;
-    }
-
-    @ConfigItem(
-            keyName = "enableDebugLogging",
-            name = "Debug Logging",
-            description = "Enable detailed debug logging for troubleshooting",
-            position = 1,
-            section = advancedSection
-    )
-    default boolean enableDebugLogging() {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "maxRetries",
-            name = "Max Retries",
-            description = "Maximum number of retries before shutting down (1-20)",
-            position = 2,
-            section = advancedSection
-    )
-    default int maxRetries() {
-        return 10;
-    }
-
-    enum IronmanType {
-        REGULAR_IRONMAN("Ironman"),
-        HARDCORE_IRONMAN("Hardcore Ironman"),
-        ULTIMATE_IRONMAN("Ultimate Ironman");
-
-        private final String displayName;
-
-        IronmanType(String displayName) {
-            this.displayName = displayName;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
+    @Provides
+    TutorialIslandConfig provideConfig(ConfigManager configManager) {
+        return configManager.getConfig(TutorialIslandConfig.class);
     }
 }
